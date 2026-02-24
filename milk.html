@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Milk Daily Summary</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#f4f6f8;
+    padding:20px;
+}
+h2{
+    text-align:center;
+    margin-bottom:20px;
+}
+.top-bar{
+    display:flex;
+    gap:10px;
+    margin-bottom:20px;
+    flex-wrap:wrap;
+}
+input[type="text"]{
+    padding:8px;
+    flex:1;
+    min-width:200px;
+}
+button{
+    padding:8px 15px;
+    border:none;
+    background:#2e7d32;
+    color:white;
+    border-radius:5px;
+    cursor:pointer;
+}
+.client{
+    background:white;
+    padding:15px;
+    margin-bottom:15px;
+    border-radius:8px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.1);
+}
+.client h3{
+    margin-bottom:10px;
+}
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+th, td{
+    border:1px solid #ddd;
+    padding:6px;
+    text-align:center;
+}
+th{
+    background:#eeeeee;
+}
+.qty{
+    width:60px;
+}
+.unit{
+    width:60px;
+}
+@media print{
+    button, .top-bar{
+        display:none;
+    }
+    body{
+        background:white;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<h2>🥛 Milk Daily Summary</h2>
+
+<div class="top-bar">
+    <input type="text" id="clientName" placeholder="Enter Client Name">
+    <button onclick="addClient()">+ Add Client</button>
+    <button onclick="sendWhatsApp()">📲 Send WhatsApp</button>
+    <button onclick="window.print()">🖨 Save PDF</button>
+</div>
+
+<div id="clients"></div>
+
+<script>
+
+function addClient(){
+    let name = document.getElementById("clientName").value.trim();
+    if(!name) return alert("Enter client name");
+
+    let container = document.getElementById("clients");
+
+    container.innerHTML += `
+    <div class="client">
+        <h3>${name}</h3>
+        <table>
+            <tr>
+                <th>Product</th>
+                <th>Qty</th>
+                <th>Unit</th>
+            </tr>
+            ${row("Green")}
+            ${row("Blue")}
+            ${row("Red")}
+            ${row("Curd")}
+            ${row("Thick Curd")}
+        </table>
+    </div>
+    `;
+
+    document.getElementById("clientName").value="";
+}
+
+function row(product){
+    return `
+    <tr>
+        <td>${product}</td>
+        <td><input type="number" class="qty" min="0" value="0"></td>
+        <td>
+            <select class="unit">
+                <option value="B">B</option>
+                <option value="L">L</option>
+            </select>
+        </td>
+    </tr>
+    `;
+}
+
+function sendWhatsApp(){
+
+    let clients = document.querySelectorAll(".client");
+    let message = "";
+
+    let today = new Date();
+    let date = today.toLocaleDateString("en-GB");
+
+    message += "*Milk Report*\n";
+    message += "Date: " + date + "\n\n";
+
+    clients.forEach(client => {
+
+        let name = client.querySelector("h3").innerText;
+        let clientData = "";
+
+        let rows = client.querySelectorAll("tr");
+
+        rows.forEach((row, index) => {
+            if(index === 0) return;
+
+            let product = row.cells[0].innerText;
+            let qty = row.querySelector(".qty").value;
+            let unit = row.querySelector(".unit").value;
+
+            if(qty > 0){
+                let fullUnit = (unit === "B") ? "Box" : "Litre";
+                clientData += product + " " + qty + " " + fullUnit + "\n";
+            }
+        });
+
+        if(clientData !== ""){
+            message += "*" + name + "*\n";
+            message += clientData + "\n";
+        }
+
+    });
+
+    if(message.trim() === "*Milk Report*"){
+        alert("No data to send");
+        return;
+    }
+
+    let phone = "8497083674";
+    let url = "https://wa.me/91" + phone + "?text=" + encodeURIComponent(message);
+    window.open(url, "_blank");
+}
+
+</script>
+
+</body>
+</html>
